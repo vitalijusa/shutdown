@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/vitalijusa/shutdown/issues"
   },
-  "homepage": "https://github.com/vitalijusa/shutdown#readme"
+  "homepage": "https://github.com/vitalijusa/shutdown#readme",
+  "dependencies": {
+    "jsonfile": "^2.4.0",
+    "moment": "^2.18.1",
+    "nodemailer": "^4.0.1",
+    "pubnub": "^4.8.0"
+  }
 }
