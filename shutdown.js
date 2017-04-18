@@ -1,19 +1,21 @@
 const os = require('os');
+const moment = require('moment');
 const configUtil = require('./configUtil.js');
 
 var configFile = "param.json";
 
 var check = function() {
     var params = configUtil.loadConfig(configFile);
-    var osUptime = os.uptime();
+    var uptime = os.uptime();
+    var now = moment();
 
-    console.log(os.uptime());
+    params.firstCheck = now.format();
+    params.lastCheck = now.valueOf();
+    params.uptime = uptime;
+
     console.log(params);
-
-    configUtil.saveConfig(params);
+    configUtil.saveConfig(configFile, params);
 };
 
 
-console.log(os.uptime());
-console.log(configUtil.loadConfig(configFile));
-
+check();
