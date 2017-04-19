@@ -1,9 +1,11 @@
 const os = require('os');
 const moment = require('moment');
 const configUtil = require('./configUtil.js');
+const Mail = require('./mail.js').Mail;
 const Pubnub = require('./pubnub.js').Pubnub;
 
-const CHECK_INTERVAL = 5*60 * 1000; // 5 minutes
+const MAX_UPTIME = 2*3600 + 3*60; // 2 h 3 min
+const CHECK_INTERVAL = 5*60 * 1000; // 5 min
 var configFile = "param.json";
 
 var check = function() {
@@ -11,9 +13,14 @@ var check = function() {
     var uptime = os.uptime();
     var now = moment();
     var lastCheck = moment(params.lastCheck);
-    var pubnub = new Pubnub("Checker", params.pubnubPublishKey, params.pubnubSubscribeKey);
+    var mail = new Mail(params.email.login.user, 
+                        params.email.login.pass,
+                        params.email.sender, 
+                        params.email.recepient);
+    // var pubnub = new Pubnub("Checker", params.pubnub.publishKey, params.pubnub.subscribeKey);
 
     if (!lastCheckWasToday(lastCheck, now)) {
+        mail.send("Start", params);
         // reset params
         params.uptime = uptime;
         params.firstCheck = now.format();        
@@ -25,7 +32,12 @@ var check = function() {
     console.log(params);
     configUtil.saveConfig(configFile, params);
 
-    pubnub.hereNow();
+    if (params.uptime > MAX_UPTIME) {
+        mail.send("Shutdown", params);
+        shutdown();
+    }
+
+    // pubnub.hereNow();
 };
 check();
 
@@ -41,11 +53,15 @@ function getUpdatedUptime(lastUptime, uptime, lastCheck, now) {
         newUptime = uptime;
     } else {
         if (lastCheck + CHECK_INTERVAL + buffer > now) {
-            newUptime = lastUptime + checkInterval;
+            newUptime = lastUptime + checkInterval/1000;
         } else {
             newUptime = lastUptime + uptime;
         }
     }
     return newUptime;
+}
+
+function shutdown() {
+
 }
 
