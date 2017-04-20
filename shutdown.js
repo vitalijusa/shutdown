@@ -10,9 +10,10 @@ var configFile = "param.json";
 
 var check = function() {
     var params = configUtil.loadConfig(configFile);
+    var track = params.track;
     var uptime = os.uptime();
     var now = moment();
-    var lastCheck = moment(params.lastCheck);
+    var lastCheck = moment(track.lastCheck);
     var mail = new Mail(params.email.login.user, 
                         params.email.login.pass,
                         params.email.sender, 
@@ -20,45 +21,31 @@ var check = function() {
     // var pubnub = new Pubnub("Checker", params.pubnub.publishKey, params.pubnub.subscribeKey);
 
     if (!lastCheckWasToday(lastCheck, now)) {
-        mail.send("Start", params);
+        mail.send("Start", JSON.stringify(track));
         // reset params
-        params.uptime = uptime;
-        params.firstCheck = now.format();        
+        track.uptime = 0;
+        track.firstCheck = now.format();        
     }
 
-    params.uptime = getUpdatedUptime(params.uptime, uptime, lastCheck, now.valueOf());
-    params.lastCheck = now.valueOf();    
+    track.uptime = track.uptime + CHECK_INTERVAL/1000;
+    track.lastCheck = now.valueOf();    
 
-    console.log(params);
+    console.log(track);
     configUtil.saveConfig(configFile, params);
 
-    if (params.uptime > MAX_UPTIME) {
-        mail.send("Shutdown", params);
+    if (track.uptime > MAX_UPTIME) {
+        mail.send("Shutdown", JSON.stringify(track));
         shutdown();
     }
 
     // pubnub.hereNow();
 };
-check();
+
+setInterval(check, CHECK_INTERVAL);
+// check();
 
 function lastCheckWasToday(lastCheck, now) {
     return lastCheck.dayOfYear() === now.dayOfYear();
-}
-
-function getUpdatedUptime(lastUptime, uptime, lastCheck, now) {
-    var newUptime = 0;
-    var buffer = 5000;
-
-    if (lastUptime <= uptime) {
-        newUptime = uptime;
-    } else {
-        if (lastCheck + CHECK_INTERVAL + buffer > now) {
-            newUptime = lastUptime + checkInterval/1000;
-        } else {
-            newUptime = lastUptime + uptime;
-        }
-    }
-    return newUptime;
 }
 
 function shutdown() {

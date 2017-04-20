@@ -14,6 +14,9 @@ function Mail(emailUser, password, from, to) {
         auth: {
             user: emailUser,
             pass: password
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     });
 
