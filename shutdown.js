@@ -21,7 +21,6 @@ var check = function() {
     // var pubnub = new Pubnub("Checker", params.pubnub.publishKey, params.pubnub.subscribeKey);
 
     if (!lastCheckWasToday(lastCheck, now)) {
-        mail.send("Start", JSON.stringify(track));
         // reset params
         track.uptime = 0;
         track.firstCheck = now.format();        
@@ -33,6 +32,9 @@ var check = function() {
     console.log(track);
     configUtil.saveConfig(configFile, params);
 
+    if (!lastCheckWasToday(lastCheck, now)) {
+        mail.send("Start", JSON.stringify(track));
+    }
     if (track.uptime > MAX_UPTIME) {
         mail.send("Shutdown", JSON.stringify(track));
         shutdown();
@@ -42,7 +44,7 @@ var check = function() {
 };
 
 setInterval(check, CHECK_INTERVAL);
-// check();
+check();
 
 function lastCheckWasToday(lastCheck, now) {
     return lastCheck.dayOfYear() === now.dayOfYear();
