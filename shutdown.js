@@ -34,7 +34,6 @@ var check = function() {
     track.lastCheck = now.valueOf();    
     track.lastCheckDate = now.format(dateFormat);    
 
-    console.log(track);
     console.log(formatParams(track));
     configUtil.saveConfig(configFile, params);
 
@@ -70,9 +69,5 @@ function formatParams(track) {
 
 function formatTime(seconds) {
     return moment.duration(seconds, "seconds").format("HH:mm:ss");
-
-    // var duration = moment(seconds, 'seconds');
-    // return strFormat("{}h {}m {}s", 
-    //     duration.hours(), duration.minutes(), duration.seconds());
 }
 
