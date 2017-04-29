@@ -1,5 +1,6 @@
 const os = require('os');
 const moment = require('moment');
+const momentDurationFormat = require('moment-duration-format');
 const strFormat = require('string-format');
 const configUtil = require('./configUtil.js');
 const Mail = require('./mail.js').Mail;
@@ -34,6 +35,7 @@ var check = function() {
     track.lastCheckDate = now.format(dateFormat);    
 
     console.log(track);
+    console.log(formatParams(track));
     configUtil.saveConfig(configFile, params);
 
     if (firstTimeToday(lastCheck, now)) {
@@ -67,8 +69,10 @@ function formatParams(track) {
 }
 
 function formatTime(seconds) {
-    var duration = moment(seconds, 'seconds');
-    return strFormat("{}h {}m {}s", 
-        duration.hours(), duration.minutes(), duration.seconds());
+    return moment.duration(seconds, "seconds").format("HH:mm:ss");
+
+    // var duration = moment(seconds, 'seconds');
+    // return strFormat("{}h {}m {}s", 
+    //     duration.hours(), duration.minutes(), duration.seconds());
 }
 
