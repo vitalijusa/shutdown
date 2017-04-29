@@ -1,11 +1,13 @@
 const os = require('os');
 const moment = require('moment');
+const strFormat = require('string-format');
 const configUtil = require('./configUtil.js');
 const Mail = require('./mail.js').Mail;
 const Pubnub = require('./pubnub.js').Pubnub;
 
 const MAX_UPTIME = 2*3600 + 3*60; // 2 h 3 min
 const CHECK_INTERVAL = 5*60 * 1000; // 5 min
+const dateFormat = "YYYY-MM-DD HH:mm:ss";
 var configFile = "param.json";
 
 var check = function() {
@@ -23,21 +25,22 @@ var check = function() {
     if (firstTimeToday(lastCheck, now)) {
         // reset params
         track.uptime = 0;
-        track.firstCheckDate = now.format();        
+        track.firstCheck = now.valueOf();        
+        track.firstCheckDate = now.format(dateFormat);        
     }
 
     track.uptime = track.uptime + CHECK_INTERVAL/1000;
     track.lastCheck = now.valueOf();    
-    track.lastCheckDate = now.format();    
+    track.lastCheckDate = now.format(dateFormat);    
 
     console.log(track);
     configUtil.saveConfig(configFile, params);
 
     if (firstTimeToday(lastCheck, now)) {
-        mail.send("Start", JSON.stringify(track));
+        mail.send("Start", formatParams(track));
     }
     if (track.uptime > MAX_UPTIME) {
-        mail.send("Shutdown", JSON.stringify(track));
+        mail.send("Shutdown", formatParams(track));
         shutdown();
     }
 
@@ -53,5 +56,19 @@ function firstTimeToday(lastCheck, now) {
 
 function shutdown() {
 
+}
+
+function formatParams(track) {
+    var str = "";
+    str = str + strFormat("up time: {}\r\n", formatTime(track.uptime));
+    str = str + strFormat("last check: {lastCheckDate}\r\n", track);
+    str = str + strFormat("first check: {firstCheckDate}\r\n", track);
+    return str;
+}
+
+function formatTime(seconds) {
+    var duration = moment(seconds, 'seconds');
+    return strFormat("{}h {}m {}s", 
+        duration.hours(), duration.minutes(), duration.seconds());
 }
 
