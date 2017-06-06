@@ -8,8 +8,13 @@ const Pubnub = require('./pubnub.js').Pubnub;
 
 const MAX_UPTIME = 2*3600 + 3*60; // 2 h 3 min
 const CHECK_INTERVAL = 5*60 * 1000; // 5 min
+const SHUTDOWN_NOTIFY_INTERVAL = 4 * CHECK_INTERVAL / 1000;
+
+var shutDownNotifyTime = 0;
+
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 var configFile = "param.json";
+
 
 var check = function() {
     var params = configUtil.loadConfig(configFile);
@@ -40,9 +45,10 @@ var check = function() {
     if (firstTimeToday(lastCheck, now)) {
         mail.send("Start", formatParams(track));
     }
-    if (track.uptime > MAX_UPTIME) {
+    if (track.uptime > MAX_UPTIME && track.uptime > shutDownNotifyTime) {
         mail.send("Shutdown", formatParams(track));
         shutdown();
+        shutDownNotifyTime = track.uptime + SHUTDOWN_NOTIFY_INTERVAL; 
     }
 
     // pubnub.hereNow();
